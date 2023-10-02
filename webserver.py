@@ -1,16 +1,22 @@
 from flask import Flask
 from threading import Thread
-#this file is used to host and run your telegram bot 24/7 on a server with a weburl.
-#this script is developed by @neo_subhamoy
-#website: https://neosubhamoy.xyz
+import subprocess
 
-app = Flask('')
+app = Flask('ProURL Bot')
 
 @app.route('/')
 def home():
-  return "Adlinkfly Telegram Bot is Running!"
-def run():
-  app.run(host='0.0.0.0', port=8080)
+  return "ProURL Telegram Bot is Running!"
+
+def run_gunicorn():
+    gunicorn_command = [
+        'gunicorn',
+        '-b', '0.0.0.0:8080',
+        '-w', '4',
+        'webserver:app',
+    ]
+    subprocess.Popen(gunicorn_command)
+
 def keep_alive():
-  t = Thread(target=run)
-  t.start()
+    t = Thread(target=run_gunicorn)
+    t.start()
