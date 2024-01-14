@@ -1,20 +1,23 @@
 from webserver import keep_alive
+from dotenv import load_dotenv
+from urllib.parse import quote
 import json
 import os
 import re
 import requests
 import telebot
 
-API_KEY = os.environ.get('BOT_TOKEN')
-PROURL_KEY = os.environ.get('PROURL_TOKEN')
+load_dotenv()   #load environment variables from .env file
+
+API_KEY = os.environ.get('BOT_TOKEN') or os.getenv('BOT_TOKEN')
+PROURL_KEY = os.environ.get('PROURL_TOKEN') or os.getenv('PROURL_TOKEN')
 bot = telebot.TeleBot(API_KEY)
 
 
 #function for Direct Link shortening API call
 def shorten_link(link):
   try:
-    r = requests.get(
-        f'https://prourl.eu.org/api?api={PROURL_KEY}&url={link}&type=0')
+    r = requests.get(f'https://prourl.eu.org/api?api={PROURL_KEY}&url={link}&type=0')
 
     if r.status_code == 200:
       response = json.loads(r.text)
@@ -95,8 +98,8 @@ def handle_nometa_command(message):
 def handle_link(message):
   if is_valid_url(message.text):
     bot.send_message(message.chat.id, "Shortening! Please wait...")
-    link = message.text
-    shortened_link = shorten_link_nometa(link)
+    link = quote(message.text)    #urlencode the link
+    shortened_link = shorten_link_nometa(link)    #shorten the link (No Metadata)
     if shortened_link:
       bot.reply_to(message,
                    "Link Metadata Removed!\n" + shortened_link,
@@ -115,7 +118,8 @@ def handle_link(message):
 def handle_text(message):
   if is_valid_url(message.text):
     bot.send_message(message.chat.id, "Shortening! Please wait...")
-    shortened_link = shorten_link(message.text)
+    link = quote(message.text)    #urlencode the link
+    shortened_link = shorten_link(link)    #shorten the link (Direct Shortening)
     if shortened_link:
       bot.reply_to(message,
                    shortened_link,
