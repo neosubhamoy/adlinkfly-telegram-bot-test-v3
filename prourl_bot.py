@@ -58,8 +58,8 @@ def shorten_link_nometa(link):
     return None
 
 
-#function to Create StreamLink Page via API call
-def create_streamlink_page(url, title):
+#function to Create StreamLinks Page via API call
+def create_streamlinks_page(url, title):
   try:
     r = requests.post(f'https://stream.prourl.eu.org/api/create.php', json={"title": title, "url": url}, headers={'Content-Type': 'application/json'})
 
@@ -96,12 +96,11 @@ def is_valid_url_with_video_extension(url):
       'ogg', 'ogm', 'ogv', 'qt', 'rm', 'rmvb', 'ts', 'vob', 'webm', 'wmv', 'iso'
   ]
   pattern = re.compile(
-      r'^(https?://)?'
-      r'([a-zA-Z0-9.-]+)?'
-      r'(/[a-zA-Z0-9._-]+)+'
-      r'\.(' + '|'.join(valid_extensions) + r')'
-      r'$'
-  , re.IGNORECASE)
+        r'^(https?|ftp)://'
+        r'([a-zA-Z0-9.-]+)'
+        r'(/[a-zA-Z0-9._~:/?#@!$&\'()*+,;=%-]+)+'
+        r'\.(' + '|'.join(valid_extensions) + r')'
+        r'$', re.IGNORECASE)
   return re.match(pattern, url) is not None
 
 
@@ -156,14 +155,14 @@ def handle_link(message):
 def stream_command(message):
   chat_id = message.chat.id
   user_data[chat_id] = {'state': WAITING_FOR_FILE_LINK}
-  bot.send_message(chat_id, "Please send the video file link to create a streamlink page!")
+  bot.send_message(chat_id, "Please send the video file link to create a streamlinks page!")
 
 @bot.message_handler(func=lambda message: message.chat.id in user_data and user_data[message.chat.id]['state'] == WAITING_FOR_FILE_LINK)
 def handle_file_link(message):
   chat_id = message.chat.id
   user_data[chat_id]['file_link'] = message.text
   user_data[chat_id]['state'] = WAITING_FOR_TITLE
-  bot.reply_to(message, "Got the link! Now, please send the video title to display on the streamlink page!")
+  bot.reply_to(message, "Got the link! Now, please send the video title to display on the streamlinks page!")
 
 @bot.message_handler(func=lambda message: message.chat.id in user_data and user_data[message.chat.id]['state'] == WAITING_FOR_TITLE)
 def handle_title(message):
@@ -180,14 +179,14 @@ def handle_stream(message, file_link, title):
       bot.send_message(message.chat.id, "Title is too long! Max: 100 charecters!\nPlease reuse the command /stream to try again with a smaller title...")
     else:
       bot.send_message(message.chat.id, "Creating! Please wait...")
-      streamlink = create_streamlink_page(file_link, title)    #Create streamlink page
+      streamlink = create_streamlinks_page(file_link, title)    #Create streamlinks page
       if streamlink:
         bot.send_message(message.chat.id,
-                        "StreamLink Page Created!\n" + streamlink,
+                        "StreamLinks Page Created!\n" + streamlink,
                         parse_mode='Markdown',
                         disable_web_page_preview=True)
       else:
-        bot.send_message(message.chat.id, 'Failed to create streamlink page! Please try again...')
+        bot.send_message(message.chat.id, 'Failed to create streamlinks page! Please try again...')
   else:
     bot.send_message(
         message.chat.id,
