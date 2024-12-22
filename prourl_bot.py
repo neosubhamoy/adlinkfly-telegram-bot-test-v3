@@ -56,7 +56,50 @@ def shorten_link_nometa(link):
   except Exception as e:
     print(f'An error occurred: {str(e)}')
     return None
+  
 
+#function for Custom Alias shortening API call
+def shorten_link_with_alias(link, alias):
+  try:
+    r = requests.get(f'https://prourl.eu.org/api?api={PROURL_KEY}&url={link}&alias={alias}&type=0')
+
+    if r.status_code == 200:
+      response = json.loads(r.text)
+      if response['status'] != 'success':
+          return None
+      return response['shortenedUrl']
+    elif r.status_code == 520:
+      return "Failed to process your request...!! Due to high server load. If you are facing this issue multiple times then please consider using our web interface insted, Sorry, for the inconvenience...!!"
+    else:
+      print(f'Request failed with status code: {r.status_code}')
+      print(f'Response content: {r.text}')
+      return None
+
+  except Exception as e:
+    print(f'An error occurred: {str(e)}')
+    return None
+
+
+#function for Custom Alias with No URL Metadata shortening API call
+def shorten_link_with_alias_nometa(link, alias):
+  try:
+    r = requests.get(f'https://prourl.eu.org/api?api={PROURL_KEY}&url={link}&alias={alias}')
+
+    if r.status_code == 200:
+      response = json.loads(r.text)
+      if response['status'] != 'success':
+          return None
+      return response['shortenedUrl']
+    elif r.status_code == 520:
+      return "Failed to process your request...!! Due to high server load. If you are facing this issue multiple times then please consider using our web interface insted, Sorry, for the inconvenience...!!"
+    else:
+      print(f'Request failed with status code: {r.status_code}')
+      print(f'Response content: {r.text}')
+      return None
+
+  except Exception as e:
+    print(f'An error occurred: {str(e)}')
+    return None
 
 #function to Create StreamLinks Page via API call
 def create_streamlinks_page(url, title):
@@ -87,6 +130,10 @@ def is_valid_url(link):
       r'(?:/?|[/?]\S+)$', re.IGNORECASE)
   return url_regex.match(link)
 
+#function to check if alias is valid
+def is_valid_alias(alias):
+    alias_regex = re.compile(r'^[a-zA-Z0-9-]+$')
+    return alias_regex.match(alias)
 
 #function to check if the (UserInput) Link is Valid with Video File extention
 def is_valid_url_with_video_extension(url):
@@ -108,7 +155,7 @@ def is_valid_url_with_video_extension(url):
 def start(message):
   bot.reply_to(
       message,
-      "🌟 Welcome to ProURL Link Shortener Bot...🙏 \n🌟 Shortening Links are now more Simpler! \n🌟 You\'re now all set to go...! Just send the links to shorten! too simple right...? \n🌟 To get more info use the command /help \n\n😇 For more Advanced Controls with Web Admin Panel please visit Our Website! and Sign-Up for your new account. Try it now...It\'s totally Free! you\'ll surely love it...!! \n\n\n🌐 Our Website: https://prourl.eu.org \n\n❤️ Powered by RoundWeb",
+      "🌟 Welcome to ProURL Link Shortener Bot...🙏 \n🌟 Shortening Links are now more Simpler! \n🌟 You\'re now all set to go...! Just send the links to shorten! too simple right...? \n🌟 To get more info use the command /help \n\n😇 For more Advanced Controls with Web Admin Panel please visit Our Website! and Sign-Up for your new account. Try it now...It\'s totally Free! you\'ll surely love it...!! \n\n\n🌐 Our Website: https://prourl.eu.org \n\n❤️ Powered by The Techishfellow",
       parse_mode='Markdown',
       disable_web_page_preview=True)
   bot.send_message(
@@ -121,7 +168,7 @@ def start(message):
 def help(message):
   bot.reply_to(
       message,
-      "🌟 ProURL Bot Help and Support!\n\n💡 Commands:\n\n/start - Start the first conversation with bot and initialize the link shortening process\n\n/nometa - Used to shorten links without metadata. This feature also creates a separate Short Link Web Page!\n(Keep in Mind: Short link page may contain some Adult 18+ Ads, Use only if you are OK with that! Ads by Adsterra, ExoClick)\n\n/help - Used to view help and support info\n\n*By default the Link shortening method is set to Direct Shortening (with metadata). If you want to shorten links without metadata you need to use the /nometa command everytime you want to use this method!\n\n*Now main shortening url is changed to prourl.eu.org from myurl.ml (Signup on Prourl website now to use exclusive custom shorturls!)\n\nThat\'s it...!! You\'r all caught up...!!\n\n\n📧 Contact Us(Email): support@prourl.eu.org"
+      "🌟 ProURL Bot Help and Support!\n\n💡 Commands:\n\n/start - Start the first conversation with bot and initialize the link shortening process\n\n/nometa - Used to shorten links without metadata. This feature also creates a separate Short Link Web Page!\n(Keep in Mind: Short link page may contain some Adult 18+ Ads, Use only if you are OK with that! Ads by Adsterra, ExoClick)\n\n/alias - Used to shorten the link with a custom alias of your choice (eg: prourl.eu.org/cool-alias)\n\n/alias_nometa - Used to shorten the link with a custom alias of your choice and also creates a separate Short Link Web Page which includes Ads\n\n/stream - Used to create a ProURL StreamLinks Page (Beta) which can make your public network video file streamable by popular video players (Web and Android)\n\n/help - Used to view help and support info\n\n*By default the Link shortening method is set to Direct Shortening (with metadata). If you want to shorten links without metadata, with alias etc. you need to use /nometa, /alias etc. commands co-respondingly everytime you want to use those methods!\n\n*Now main shortening url is changed to prourl.eu.org from myurl.ml (Signup on Prourl website now to use exclusive custom shorturls!)\n\nThat\'s it...!! You\'r all caught up...!!\n\n\n📧 Contact Us(Email): support@prourl.eu.org"
   )
 
 
@@ -135,8 +182,8 @@ def handle_nometa_command(message):
 def handle_link(message):
   if is_valid_url(message.text):
     bot.send_message(message.chat.id, "Shortening! Please wait...")
-    link = quote(message.text)    #urlencode the link
-    shortened_link = shorten_link_nometa(link)    #shorten the link (No Metadata)
+    link = quote(message.text)
+    shortened_link = shorten_link_nometa(link)
     if shortened_link:
       bot.reply_to(message,
                    "Link Metadata Removed!\n" + shortened_link,
@@ -150,6 +197,119 @@ def handle_link(message):
         "Invalid URL!\nPlease reuse the command /nometa to try again with a valid link..."
     )
 
+@bot.message_handler(commands=['alias'])
+def handle_alias_command(message):
+  bot.send_message(
+    chat_id=message.chat.id,
+    text="Please send the link to shorten with custom alias:")
+  bot.register_next_step_handler(message, handle_alias_url)
+
+def handle_alias_url(message):
+  if is_valid_url(message.text):
+    user_data[message.chat.id] = {'url': message.text}
+    bot.send_message(
+      message.chat.id,
+      "Now, please send your desired alias (only letters, numbers, and hyphens allowed):")
+    bot.register_next_step_handler(message, handle_alias_creation)
+  else:
+    bot.send_message(
+      message.chat.id,
+      "Invalid URL!\nPlease use /alias command again with a valid link..."
+    )
+
+def handle_alias_creation(message):
+  if not is_valid_alias(message.text):
+    bot.send_message(
+      message.chat.id,
+      "Invalid alias! Only letters, numbers, and hyphens are allowed.\nPlease use /alias command again..."
+    )
+    return
+
+  chat_id = message.chat.id
+  if chat_id not in user_data:
+    bot.send_message(
+      chat_id,
+      "Something went wrong. Please start over with /alias command."
+    )
+    return
+
+  long_url = user_data[chat_id]['url']
+  alias = message.text
+  
+  bot.send_message(message.chat.id, "Shortening! Please wait...")
+  shortened_link = shorten_link_with_alias(quote(long_url), alias)
+  
+  if shortened_link:
+    bot.reply_to(
+      message,
+      f"Link Shortened With Custom Alias!\n{shortened_link}",
+      parse_mode='Markdown',
+      disable_web_page_preview=True
+    )
+  else:
+    bot.reply_to(
+      message,
+      'Failed to create custom short link! The alias might be taken or there was an error. Please try again with a different alias.'
+    )
+  
+  del user_data[chat_id]
+
+@bot.message_handler(commands=['alias_nometa'])
+def handle_alias_ads_command(message):
+  bot.send_message(
+    chat_id=message.chat.id,
+    text="Please send the link to shorten with custom alias (with ads):")
+  bot.register_next_step_handler(message, handle_alias_ads_url)
+
+def handle_alias_ads_url(message):
+  if is_valid_url(message.text):
+    user_data[message.chat.id] = {'url': message.text}
+    bot.send_message(
+      message.chat.id,
+      "Now, please send your desired alias (only letters, numbers, and hyphens allowed):")
+    bot.register_next_step_handler(message, handle_alias_ads_creation)
+  else:
+    bot.send_message(
+      message.chat.id,
+      "Invalid URL!\nPlease use /alias_nometa command again with a valid link..."
+    )
+
+def handle_alias_ads_creation(message):
+  if not is_valid_alias(message.text):
+    bot.send_message(
+      message.chat.id,
+      "Invalid alias! Only letters, numbers, and hyphens are allowed.\nPlease use /alias_nometa command again..."
+    )
+    return
+
+  chat_id = message.chat.id
+  if chat_id not in user_data:
+    bot.send_message(
+      chat_id,
+      "Something went wrong. Please start over with /alias_nometa command."
+    )
+    return
+
+  long_url = user_data[chat_id]['url']
+  alias = message.text
+  
+  bot.send_message(message.chat.id, "Shortening! Please wait...")
+  shortened_link = shorten_link_with_alias_nometa(quote(long_url), alias)
+  
+  if shortened_link:
+    bot.reply_to(
+      message,
+      f"Removed Link Metadata and Shortened With Custom Alias!\n{shortened_link}",
+      parse_mode='Markdown',
+      disable_web_page_preview=True
+    )
+  else:
+    bot.reply_to(
+      message,
+      'Failed to create custom short link! The alias might be taken or there was an error. Please try again with a different alias.'
+    )
+  
+  del user_data[chat_id]
 
 @bot.message_handler(commands=['stream'])
 def stream_command(message):
@@ -179,7 +339,7 @@ def handle_stream(message, file_link, title):
       bot.send_message(message.chat.id, "Title is too long! Max: 100 charecters!\nPlease reuse the command /stream to try again with a smaller title...")
     else:
       bot.send_message(message.chat.id, "Creating! Please wait...")
-      streamlink = create_streamlinks_page(file_link, title)    #Create streamlinks page
+      streamlink = create_streamlinks_page(file_link, title)
       if streamlink:
         bot.send_message(message.chat.id,
                         "StreamLinks Page Created!\n" + streamlink,
@@ -198,8 +358,8 @@ def handle_stream(message, file_link, title):
 def handle_text(message):
   if is_valid_url(message.text):
     bot.send_message(message.chat.id, "Shortening! Please wait...")
-    link = quote(message.text)    #urlencode the link
-    shortened_link = shorten_link(link)    #shorten the link (Direct Shortening)
+    link = quote(message.text)
+    shortened_link = shorten_link(link)
     if shortened_link:
       bot.reply_to(message,
                    shortened_link,

@@ -1,7 +1,6 @@
 flask
 gunicorn
 threaded
-numpy
 telebot
 pytelegrambotapi
 regex
