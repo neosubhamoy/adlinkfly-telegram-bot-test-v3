@@ -7,3 +7,4 @@ services:
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
       - PROURL_TOKEN=${PROURL_TOKEN}
+    restart: unless-stopped
